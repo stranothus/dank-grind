@@ -1,8 +1,11 @@
 import * as discord from "discord.js";
 import * as dotenv from "dotenv";
+import * as fs from "fs";
 import * as interfaces from "./interfaces";
 
 dotenv.config();
+
+const dankmemerItems: Object = JSON.parse(fs.readFileSync("./lib/items.json", "utf-8"));
 
 const client: discord.Client = new discord.Client({
     partials: [
@@ -43,11 +46,27 @@ client.on("ready", async (): Promise<void> => {
                 }
             );
 
-            collector.on("collect", (msg: discord.Message): void => {
+            collector.on("collect", async (msg: discord.Message): Promise<void> => {
                 const content: string = (msg.embeds.map((v: discord.MessageEmbed): string => v.description).join(" ") || msg.content);
                 const items: string|boolean = content.match(v.match)?.[1] || false;
 
-                if(items) console.log(`Collected ${items}`);
+                if(!items) return;
+
+                await channel.send("pls shop " + items.replace(/\s*[a\d]\s*/, ""));
+
+                const collector = new discord.MessageCollector(channel, (): boolean => true,
+                    {
+                        max: 1
+                    }
+                );
+
+                collector.on("collect", (msg: discord.Message): void => {
+                    console.log("Collected");
+                    const id: keyof typeof dankmemerItems = msg.embeds[0].fields.filter((v: discord.EmbedField): boolean => v.name.toLowerCase() === "id")[0].value.replace(/`/g, "") as keyof typeof dankmemerItems;
+                    const item: interfaces.item = dankmemerItems[id] as unknown as interfaces.item;
+
+                    console.log(`Collected ${id} - ${item.sell}`);
+                });
             });
 
             if(v.cooldown) await new Promise((resolve, reject): NodeJS.Timeout => setTimeout((): void => resolve(true), (v.cooldown + Math.random() * 5) * 1000));

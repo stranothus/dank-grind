@@ -19,5 +19,5 @@ export interface item {
     id: string,
     rarity: string,
     type: string,
-    name: string
+    name?: string
 }
