@@ -46,7 +46,7 @@ import * as interfaces from "./interfaces";
                     .replace(/[\s\S]+Buy Price/, "Buy Price")
                     .split(/(?=sell\b)/i)
                     .map((v: string): Object => ({
-                        [v.split(/\s*price\s*/i)[0]]: v
+                        [v.split(/\s*price\s*/i)[0].toLowerCase()]: v
                             .split(/\s*price\s*/i)[1]
                             ?.replace(/[^\da-zA-Z\s]/g, "")
                             ?.trim() || "Couldn't find"
