@@ -32,6 +32,30 @@ client.on("ready", async (): Promise<void> => {
                     item: "huntingrifle"
                 }
             ]
+        },
+        {
+            command: "fish",
+            cooldown: 40,
+            repliesTo: true,
+            match: /You cast out your line and brought back\s*([^<]+)</,
+            requirements: [
+                {
+                    type: "inv",
+                    item: "fishingpole"
+                }
+            ]
+        },
+        {
+            command: "dig",
+            cooldown: 40,
+            repliesTo: true,
+            match: /You dig in the dirt and brought back\s*([^<]+)</,
+            requirements: [
+                {
+                    type: "inv",
+                    item: "shovel"
+                }
+            ]
         }
     ];
 
@@ -61,11 +85,10 @@ client.on("ready", async (): Promise<void> => {
                 );
 
                 collector.on("collect", (msg: discord.Message): void => {
-                    console.log("Collected");
-                    const id: keyof typeof dankmemerItems = msg.embeds[0].fields.filter((v: discord.EmbedField): boolean => v.name.toLowerCase() === "id")[0].value.replace(/`/g, "") as keyof typeof dankmemerItems;
+                    const id: keyof typeof dankmemerItems = msg?.embeds?.[0]?.fields?.filter((v: discord.EmbedField): boolean => v?.name?.toLowerCase() === "id")?.[0]?.value?.replace(/`/g, "") as keyof typeof dankmemerItems;
                     const item: interfaces.item = dankmemerItems[id] as unknown as interfaces.item;
 
-                    console.log(`Collected ${id} - ${item.sell}`);
+                    if(item && item.sell) console.log(`Collected ${id} - ${item.sell}`);
                 });
             });
 
