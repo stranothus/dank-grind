@@ -72,24 +72,36 @@ client.on("ready", async (): Promise<void> => {
 
             collector.on("collect", async (msg: discord.Message): Promise<void> => {
                 const content: string = (msg.embeds.map((v: discord.MessageEmbed): string => v.description).join(" ") || msg.content);
-                const items: string|boolean = content.match(v.match)?.[1] || false;
+                const items: string = content.match(v.match)?.[1] || "";
 
-                if(!items) return;
+                if(!items) {
+                    const doesntHave = content.startsWith("You don't have a ");
 
-                await channel.send("pls shop " + items.replace(/\s*[a\d]\s*/, ""));
+                    if(doesntHave && v.requirements.filter((v: interfaces.requirement): boolean => v.type === "inv").length) await Promise.all(v.requirements.filter((v: interfaces.requirement): boolean => v.type === "inv").map(async (v: interfaces.requirement): Promise<discord.Message> => await channel.send(`pls buy ${v.item}`)));
+                    return;
+                }
 
-                const collector = new discord.MessageCollector(channel, (): boolean => true,
-                    {
-                        max: 1
-                    }
-                );
+                if(false) {
+                    await channel.send("pls shop " + items.replace(/\s*[a\d]\s*/, ""));
 
-                collector.on("collect", (msg: discord.Message): void => {
-                    const id: keyof typeof dankmemerItems = msg?.embeds?.[0]?.fields?.filter((v: discord.EmbedField): boolean => v?.name?.toLowerCase() === "id")?.[0]?.value?.replace(/`/g, "") as keyof typeof dankmemerItems;
+                    const collector = new discord.MessageCollector(channel, (): boolean => true,
+                        {
+                            max: 1
+                        }
+                    );
+
+                    collector.on("collect", (msg: discord.Message): void => {
+                        const id: keyof typeof dankmemerItems = msg?.embeds?.[0]?.fields?.filter((v: discord.EmbedField): boolean => v?.name?.toLowerCase() === "id")?.[0]?.value?.replace(/`/g, "") as keyof typeof dankmemerItems;
+                        const item: interfaces.item = dankmemerItems[id] as unknown as interfaces.item;
+
+                        if(item && item.sell) console.log(`Collected ${id} - ${item.sell}`);
+                    });
+                } else {
+                    const id = items.replace(/\s*[a\d]\s*/, "").toLowerCase().replace(/[^a-z]/g, "") as keyof typeof dankmemerItems;
                     const item: interfaces.item = dankmemerItems[id] as unknown as interfaces.item;
 
                     if(item && item.sell) console.log(`Collected ${id} - ${item.sell}`);
-                });
+            }
             });
 
             if(v.cooldown) await new Promise((resolve, reject): NodeJS.Timeout => setTimeout((): void => resolve(true), (v.cooldown + Math.random() * 5) * 1000));
